@@ -1,37 +1,66 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { fetchJobs } from "../api/jobsApi";
 import JobCard from "../components/JobCard";
 import LoadingSkeleton from "../components/LoadingSkeleton";
 import ErrorMessage from "../components/ErrorMessage";
 import { useSearchParams } from "react-router-dom";
+
 // import ErrorMessage from "../components/ErrorMessage";
 
 function JobsPage() {
   const [categoryInput, setCategoryInput] = useState(""); // useQuery hook - fetches data automatically
+  const [pageInput, setPageInput] = useState(1);
+  const isFirstRender = useRef(true);
   const [searchParams, setSearchParam] = useSearchParams(); // read and write URL search params
 
   const category = searchParams.get("category") || "";
+  const page = parseInt(searchParams.get("page") || "1");
 
   const { data, isLoading, isError, error, refetch } = useQuery({
-    queryKey: ["jobs", category],
-    queryFn: () => fetchJobs({ category }),
+    queryKey: ["jobs", category, page],
+    queryFn: () => fetchJobs({ category, page }),
   });
 
   //Initialize local state from URL on page load
   useEffect(() => {
-    const urlSearch = searchParams.get("category") || "";
-    setCategoryInput(urlSearch);
+    const urlCategory = searchParams.get("category") || "";
+    const urlPage = parseInt(searchParams.get("page") || "1");
+    setCategoryInput(urlCategory);
+    setPageInput(urlPage);
+
+    if (!searchParams.has("page")) {
+      const params: Record<string, string> = { page: "1" };
+      if (urlCategory) {
+        params.category = urlCategory;
+      }
+      setSearchParam(params, { replace: true });
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   useEffect(() => {
-    if (categoryInput) {
-      setSearchParam({ category: categoryInput });
-    } else {
-      setSearchParam({});
+    if (isFirstRender.current) {
+      isFirstRender.current = false;
+      return;
     }
-  }, [categoryInput, setSearchParam]);
+
+    const params: Record<string, string> = { page: pageInput.toString() };
+
+    if (categoryInput) {
+      params.category = categoryInput;
+    }
+
+    const currentCategory = searchParams.get("category") || "";
+    const currentPage = searchParams.get("page") || "1";
+
+    if (
+      currentCategory !== (categoryInput || "") ||
+      currentPage !== pageInput.toString()
+    ) {
+      setSearchParam(params, { replace: true });
+    }
+  }, [categoryInput, pageInput, searchParams, setSearchParam]);
 
   // loading state
   if (isLoading) {
