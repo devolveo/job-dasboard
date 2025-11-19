@@ -1,73 +1,52 @@
-import { useState, useEffect, useRef } from "react";
+import { useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
+import { useSearchParams } from "react-router-dom";
 import { fetchJobs } from "../api/jobsApi";
 import JobCard from "../components/JobCard";
 import LoadingSkeleton from "../components/LoadingSkeleton";
 import ErrorMessage from "../components/ErrorMessage";
-import { useSearchParams } from "react-router-dom";
-
-// import ErrorMessage from "../components/ErrorMessage";
 
 function JobsPage() {
-  const [categoryInput, setCategoryInput] = useState(""); // useQuery hook - fetches data automatically
-  const [pageInput, setPageInput] = useState(1);
-  const isFirstRender = useRef(true);
-  const [searchParams, setSearchParam] = useSearchParams(); // read and write URL search params
+  const [searchParams, setSearchParams] = useSearchParams();
 
+  // URL is the ONLY source of truth
   const category = searchParams.get("category") || "";
   const page = parseInt(searchParams.get("page") || "1");
 
+  // Fetch data based on URL
   const { data, isLoading, isError, error, refetch } = useQuery({
     queryKey: ["jobs", category, page],
     queryFn: () => fetchJobs({ category, page }),
   });
 
-  //Initialize local state from URL on page load
+  // Add ?page=1 to URL on first visit (if missing)
   useEffect(() => {
-    const urlCategory = searchParams.get("category") || "";
-    const urlPage = parseInt(searchParams.get("page") || "1");
-    setCategoryInput(urlCategory);
-    setPageInput(urlPage);
-
     if (!searchParams.has("page")) {
-      const params: Record<string, string> = { page: "1" };
-      if (urlCategory) {
-        params.category = urlCategory;
-      }
-      setSearchParam(params, { replace: true });
+      const newParams = new URLSearchParams(searchParams);
+      newParams.set("page", "1");
+      setSearchParams(newParams, { replace: true });
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [searchParams, setSearchParams]);
 
-  useEffect(() => {
-    if (isFirstRender.current) {
-      isFirstRender.current = false;
-      return;
+  // Handler for category changes
+  function handleCategoryChange(newCategory: string) {
+    const newParams = new URLSearchParams();
+    newParams.set("page", "1"); // Always reset to page 1
+    if (newCategory) {
+      newParams.set("category", newCategory);
     }
+    setSearchParams(newParams);
+  }
 
-    const params: Record<string, string> = { page: pageInput.toString() };
+  // Handler for clearing filter
+  function handleClearFilter() {
+    setSearchParams({ page: "1" });
+  }
 
-    if (categoryInput) {
-      params.category = categoryInput;
-    }
-
-    const currentCategory = searchParams.get("category") || "";
-    const currentPage = searchParams.get("page") || "1";
-
-    if (
-      currentCategory !== (categoryInput || "") ||
-      currentPage !== pageInput.toString()
-    ) {
-      setSearchParam(params, { replace: true });
-    }
-  }, [categoryInput, pageInput, searchParams, setSearchParam]);
-
-  // loading state
   if (isLoading) {
     return <LoadingSkeleton />;
   }
 
-  // error state
   if (isError) {
     return <ErrorMessage error={error as Error} onRetry={refetch} />;
   }
@@ -76,13 +55,15 @@ function JobsPage() {
     <div className="min-h-screen bg-gray-100 p-8">
       <div className="max-w-7xl mx-auto">
         <h1 className="text-3xl font-bold mb-8">Available Jobs</h1>
+
+        {/* CATEGORY FILTER */}
         <div className="mb-6">
           <label className="block text-sm font-medium text-gray-700 mb-2">
             Filter by Category
           </label>
           <select
-            value={categoryInput}
-            onChange={(e) => setCategoryInput(e.target.value)}
+            value={category}
+            onChange={(e) => handleCategoryChange(e.target.value)}
             className="w-full px-4 py-3 border border-gray-300 rounded-lg 
                        focus:ring-2 focus:ring-blue-500 focus:border-blue-500 
                        outline-none transition bg-white"
@@ -103,31 +84,25 @@ function JobsPage() {
             <option value="Legal">Legal</option>
           </select>
 
-          {/* clear button - right, only shown when there is text */}
-          {categoryInput && (
+          {/* CLEAR FILTER BUTTON */}
+          {category && (
             <button
-              onClick={() => setCategoryInput("")}
+              onClick={handleClearFilter}
               className="mt-2 text-sm text-blue-600 hover:text-blue-800 transition"
             >
-              X Clear Filter
+              ✕ Clear Filter
             </button>
           )}
         </div>
 
+        {/* JOB COUNT */}
         <p className="text-gray-600 mb-4">
-          {categoryInput && (
-            <span className="font-semibold">{categoryInput}: </span>
-          )}
+          {category && <span className="font-semibold">{category}: </span>}
           Showing {data?.results.length} of {data?.total.toLocaleString() || 0}{" "}
           jobs
         </p>
 
-        {/* Temporary: Just show job titles as a list
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {data?.results.map((job) => (
-            <JobCard key={job.id} job={job} />
-          ))}
-        </div> */}
+        {/* EMPTY STATE or JOB GRID */}
         {data?.results.length === 0 ? (
           <div className="text-center py-16 bg-white rounded-lg shadow-sm">
             <div className="text-6xl mb-4">🔍</div>
@@ -135,13 +110,13 @@ function JobsPage() {
               No jobs found in this category
             </h3>
             <p className="text-gray-600 mb-6">
-              {categoryInput
-                ? `There are currently no active "${categoryInput}" jobs available.`
+              {category
+                ? `There are currently no active "${category}" jobs available.`
                 : "Try selecting a different category or check back later."}
             </p>
-            {categoryInput && (
+            {category && (
               <button
-                onClick={() => setCategoryInput("")}
+                onClick={handleClearFilter}
                 className="px-6 py-3 bg-blue-600 text-white rounded-lg 
                          hover:bg-blue-700 transition"
               >
