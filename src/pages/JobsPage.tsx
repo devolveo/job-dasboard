@@ -19,6 +19,8 @@ function JobsPage() {
     queryFn: () => fetchJobs({ category, page }),
   });
 
+  const itemsPerPage = data?.items_per_page || 20;
+
   // Add ?page=1 to URL on first visit (if missing)
   useEffect(() => {
     if (!searchParams.has("page")) {
@@ -27,6 +29,23 @@ function JobsPage() {
       setSearchParams(newParams, { replace: true });
     }
   }, [searchParams, setSearchParams]);
+
+  // calculate total pages from API Response
+  const totalPages =
+    (data?.results.length ?? 0) < itemsPerPage &&
+    (data?.results.length ?? 0) > 0
+      ? page
+      : data?.page_count || 1;
+
+  // calculate boundary calculation
+  const isFirstPage = page === 1;
+  const isLastPage = page === totalPages || data?.results.length === 0;
+
+  const totalJobs = data?.total || 0;
+  const startIndex = (page - 1) * itemsPerPage + 1;
+  const endIndex = isLastPage
+    ? startIndex + ((data?.results.length || 0) - 1)
+    : Math.min(page * itemsPerPage, totalJobs);
 
   // Handler for category changes
   function handleCategoryChange(newCategory: string) {
@@ -41,6 +60,26 @@ function JobsPage() {
   // Handler for clearing filter
   function handleClearFilter() {
     setSearchParams({ page: "1" });
+  }
+
+  // handler for going to previous page
+  function handlePreviousPage() {
+    const newParams = new URLSearchParams();
+    newParams.set("page", String(page - 1));
+    if (category) {
+      newParams.set("category", category);
+    }
+    setSearchParams(newParams);
+  }
+
+  // handler for going to next page
+  function handleNextPage() {
+    const newParams = new URLSearchParams();
+    newParams.set("page", String(page + 1));
+    if (category) {
+      newParams.set("category", category);
+    }
+    setSearchParams(newParams);
   }
 
   if (isLoading) {
@@ -95,11 +134,41 @@ function JobsPage() {
           )}
         </div>
 
+        {/* PAGINATION CONTROLS */}
+        <div className="flex items-center justify-center gap-4 mb-6">
+          <button
+            onClick={handlePreviousPage}
+            disabled={isFirstPage}
+            // className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition"
+            className={`px-4 py-2 rounded-lg transition ${
+              isFirstPage
+                ? "bg-gray-300 text-gray-500 cursor-not-allowed"
+                : "bg-blue-600 text-white hover:bg-blue-700"
+            }`}
+          >
+            ← Previous
+          </button>
+          <span className="text-gray-700 font-medium">
+            Page {page} of {totalPages}
+          </span>
+          <button
+            onClick={handleNextPage}
+            disabled={isLastPage}
+            className={`px-4 py-2 rounded-lg transition ${
+              isLastPage
+                ? "bg-gray-300 text-gray-500 cursor-not-allowed"
+                : "bg-blue-600 text-white hover:bg-blue-700"
+            }`}
+          >
+            Next →
+          </button>
+        </div>
+
         {/* JOB COUNT */}
         <p className="text-gray-600 mb-4">
           {category && <span className="font-semibold">{category}: </span>}
-          Showing {data?.results.length} of {data?.total.toLocaleString() || 0}{" "}
-          jobs
+          Showing {startIndex.toLocaleString()}-{endIndex.toLocaleString()} of{" "}
+          {totalJobs.toLocaleString()} jobs
         </p>
 
         {/* EMPTY STATE or JOB GRID */}
