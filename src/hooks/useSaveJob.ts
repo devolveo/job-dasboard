@@ -7,7 +7,7 @@ export function useSaveJob() {
   const queryClient = useQueryClient();
 
   // Mutation for saving a job
-  const saveJobMutatin = useMutation({
+  const saveJobMutation = useMutation({
     mutationFn: (job: Job) => {
       saveJob(job);
       return Promise.resolve(); // saveJob is sync, wrap in promise
@@ -40,7 +40,7 @@ export function useSaveJob() {
   });
 
   return {
-    saveJobMutatin,
+    saveJobMutation,
     unsaveJobMutation,
   };
 }

@@ -29,6 +29,17 @@ function Navigation() {
             </NavLink>
 
             <NavLink
+              to="/saved"
+              className={({ isActive }) =>
+                isActive
+                  ? "text-blue-600 font-semibold border-b-2 border-blue-600 pb-1"
+                  : "text-gray-600 hover:text-blue-600 transition pb-1"
+              }
+            >
+              Saved Jobs
+            </NavLink>
+
+            <NavLink
               to="/about"
               className={({ isActive }) =>
                 isActive
