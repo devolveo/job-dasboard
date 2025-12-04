@@ -19,7 +19,6 @@ function SavedJobsPage() {
   });
 
   // log to console so we can see its working!
-  console.log("Saved jobs data: ", savedJobs);
 
   if (isLoading) {
     return <LoadingSkeleton />;
@@ -40,25 +39,38 @@ function SavedJobsPage() {
 
         {/* conditional rendering */}
         {savedJobs?.length === 0 ? (
-          <div className="text-center py-16 bg-white rounded-lg shadow-sm">
-            <div className="text-6xl mb-4">💼</div>
-            <h3 className="text-xl font-semibold text-gray-800 mb-2">
-              No saved job yet
-            </h3>
-            <p className="text-gray-600 mb-6">
-              Start saving jobs you're interested in to view them here!
-            </p>
-            <a
-              href="/jobs"
-              className="inline-block px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition"
-            >
-              Browse Jobs
-            </a>
+          <div className="flex items-center justify-center min-h-[60vh]">
+            <div className="text-center max-w-md">
+              {/* Larger, more prominent icon */}
+              <div className="text-8xl mb-6 animate-bounce">💼</div>
+
+              {/* Better heading */}
+              <h3 className="text-2xl font-bold text-gray-800 mb-3">
+                Your Saved Jobs List is Empty
+              </h3>
+
+              {/* More engaging copy */}
+              <p className="text-gray-600 mb-8 text-lg">
+                When you find jobs you're interested in, save them here for easy
+                access later. Start building your dream job collection!
+              </p>
+
+              {/* Better CTA button */}
+              <a
+                href="/jobs"
+                className="inline-flex items-center gap-2 px-8 py-4 bg-blue-600 text-white rounded-lg 
+                   font-semibold hover:bg-blue-700 transition-all transform hover:scale-105 
+                   shadow-lg hover:shadow-xl"
+              >
+                <span>🔍</span>
+                <span>Explore Jobs Now</span>
+              </a>
+            </div>
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {savedJobs?.map((job) => (
-              <JobCard key={job.id} job={job} />
+            {savedJobs?.map((job, index) => (
+              <JobCard key={job.id} job={job} index={index} />
             ))}
           </div>
         )}

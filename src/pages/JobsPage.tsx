@@ -5,6 +5,7 @@ import { fetchJobs } from "../api/jobsApi";
 import JobCard from "../components/JobCard";
 import LoadingSkeleton from "../components/LoadingSkeleton";
 import ErrorMessage from "../components/ErrorMessage";
+import { ITEMS_PER_PAGE, JOB_CATEGORIES } from "../constants/jobConstants";
 
 function JobsPage() {
   const [searchParams, setSearchParams] = useSearchParams();
@@ -19,7 +20,7 @@ function JobsPage() {
     queryFn: () => fetchJobs({ category, page }),
   });
 
-  const itemsPerPage = data?.items_per_page || 20;
+  const itemsPerPage = data?.items_per_page || ITEMS_PER_PAGE;
 
   // Add ?page=1 to URL on first visit (if missing)
   useEffect(() => {
@@ -48,7 +49,7 @@ function JobsPage() {
     : Math.min(page * itemsPerPage, totalJobs);
 
   // Handler for category changes
-  function handleCategoryChange(newCategory: string) {
+  function handleCategoryChange(newCategory: string): void {
     const newParams = new URLSearchParams();
     newParams.set("page", "1"); // Always reset to page 1
     if (newCategory) {
@@ -58,12 +59,12 @@ function JobsPage() {
   }
 
   // Handler for clearing filter
-  function handleClearFilter() {
+  function handleClearFilter(): void {
     setSearchParams({ page: "1" });
   }
 
   // handler for going to previous page
-  function handlePreviousPage() {
+  function handlePreviousPage(): void {
     const newParams = new URLSearchParams();
     newParams.set("page", String(page - 1));
     if (category) {
@@ -73,7 +74,7 @@ function JobsPage() {
   }
 
   // handler for going to next page
-  function handleNextPage() {
+  function handleNextPage(): void {
     const newParams = new URLSearchParams();
     newParams.set("page", String(page + 1));
     if (category) {
@@ -97,30 +98,22 @@ function JobsPage() {
 
         {/* CATEGORY FILTER */}
         <div className="mb-6">
-          <label className="block text-sm font-medium text-gray-700 mb-2">
+          <label className="block text-base sm:text-sm font-medium text-gray-700 mb-2">
             Filter by Category
           </label>
           <select
             value={category}
             onChange={(e) => handleCategoryChange(e.target.value)}
-            className="w-full px-4 py-3 border border-gray-300 rounded-lg 
+            className="w-full px-4 py-3 border text-base md:text-sm border-gray-300 rounded-lg 
                        focus:ring-2 focus:ring-blue-500 focus:border-blue-500 
                        outline-none transition bg-white"
           >
             <option value="">All Categories</option>
-            <option value="Engineering">Engineering</option>
-            <option value="Design">Design</option>
-            <option value="Data Science">Data Science</option>
-            <option value="Business & Strategy">Business & Strategy</option>
-            <option value="Marketing & PR">Marketing & PR</option>
-            <option value="HR & Recruiting">HR & Recruiting</option>
-            <option value="Customer Service">Customer Service</option>
-            <option value="Sales">Sales</option>
-            <option value="Finance">Finance</option>
-            <option value="Operations">Operations</option>
-            <option value="Healthcare & Medicine">Healthcare & Medicine</option>
-            <option value="Education">Education</option>
-            <option value="Legal">Legal</option>
+            {JOB_CATEGORIES.map((category) => (
+              <option key={category} value={category}>
+                {category}
+              </option>
+            ))}
           </select>
 
           {/* CLEAR FILTER BUTTON */}
@@ -138,18 +131,21 @@ function JobsPage() {
         <div className="flex items-center justify-center gap-4 mb-6">
           <button
             onClick={handlePreviousPage}
-            disabled={isFirstPage}
+            disabled={isFirstPage || data?.results.length === 0}
             // className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition"
             className={`px-4 py-2 rounded-lg transition ${
-              isFirstPage
+              isFirstPage || data?.results.length === 0
                 ? "bg-gray-300 text-gray-500 cursor-not-allowed"
-                : "bg-blue-600 text-white hover:bg-blue-700"
+                : "inline-block bg-blue-600 text-white px-4 py-2 md:px-6 md:py-3 rounded-lg font-semibold hover:bg-blue-700 transition-smooth transform hover:scale-105 shadow-md hover:shadow-lg"
             }`}
           >
-            ← Previous
+            ← Prev
           </button>
           <span className="text-gray-700 font-medium">
-            Page {page} of {totalPages}
+            {/* Page {page} of {totalPages} */}
+            {data?.results.length === 0
+              ? "No pages"
+              : `Page ${page} of ${totalPages}`}
           </span>
           <button
             onClick={handleNextPage}
@@ -157,7 +153,7 @@ function JobsPage() {
             className={`px-4 py-2 rounded-lg transition ${
               isLastPage
                 ? "bg-gray-300 text-gray-500 cursor-not-allowed"
-                : "bg-blue-600 text-white hover:bg-blue-700"
+                : "inline-block bg-blue-600 text-white px-4 py-2 md:px-6 md:py-3 rounded-lg font-semibold hover:bg-blue-700 transition-smooth transform hover:scale-105 shadow-md hover:shadow-lg"
             }`}
           >
             Next →
@@ -167,36 +163,63 @@ function JobsPage() {
         {/* JOB COUNT */}
         <p className="text-gray-600 mb-4">
           {category && <span className="font-semibold">{category}: </span>}
-          Showing {startIndex.toLocaleString()}-{endIndex.toLocaleString()} of{" "}
-          {totalJobs.toLocaleString()} jobs
+          {data?.results.length === 0
+            ? "No jobs found"
+            : `Showing ${startIndex.toLocaleString()}-${endIndex.toLocaleString()} of
+          ${totalJobs.toLocaleString()}}
+           jobs`}
         </p>
 
         {/* EMPTY STATE or JOB GRID */}
         {data?.results.length === 0 ? (
-          <div className="text-center py-16 bg-white rounded-lg shadow-sm">
-            <div className="text-6xl mb-4">🔍</div>
-            <h3 className="text-xl font-semibold text-gray-800 mb-2">
-              No jobs found in this category
+          <div
+            className="flex flex-col text-center bg-white p-6 rounded-lg shadow-card hover:shadow-card-hover transition-smooth 
+                hover:scale-[1.02] animate-fadeIn"
+            style={{ animationDelay: `100ms` }}
+          >
+            {/* Icon with subtle animation */}
+            <div className="text-7xl mb-6 animate-pulse">🔍</div>
+
+            {/* Dynamic heading based on filter */}
+            <h3 className="text-2xl font-bold text-gray-800 mb-4">
+              {category ? `No ${category} Jobs Found` : "No Jobs Available"}
             </h3>
-            <p className="text-gray-600 mb-6">
+
+            {/* Helpful, friendly message */}
+            <p className="text-gray-600 mb-8 text-lg leading-relaxed">
               {category
-                ? `There are currently no active "${category}" jobs available.`
-                : "Try selecting a different category or check back later."}
+                ? `We couldn't find any active "${category}" positions right now. Try viewing all categories or check back soon!`
+                : "There are no jobs available at the moment. Please try again later or adjust your filters."}
             </p>
-            {category && (
-              <button
-                onClick={handleClearFilter}
-                className="px-6 py-3 bg-blue-600 text-white rounded-lg 
-                         hover:bg-blue-700 transition"
+
+            {/* Action buttons */}
+            <div className="flex gap-4 justify-center">
+              {category && (
+                <button
+                  onClick={handleClearFilter}
+                  className="inline-flex items-center gap-2 px-6 py-3 bg-blue-600 text-white 
+                       rounded-lg font-semibold hover:bg-blue-700 transition-all 
+                       transform hover:scale-105 shadow-md hover:shadow-lg"
+                >
+                  <span>🌐</span>
+                  <span>View All Jobs</span>
+                </button>
+              )}
+              <a
+                href="/"
+                className="inline-flex items-center gap-2 px-6 py-3 bg-gray-100 text-gray-700 
+                     rounded-lg font-semibold hover:bg-gray-200 transition-all 
+                     transform hover:scale-105"
               >
-                View All Categories
-              </button>
-            )}
+                <span>🏠</span>
+                <span>Back to Home</span>
+              </a>
+            </div>
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {data?.results.map((job) => (
-              <JobCard key={job.id} job={job} />
+            {data?.results.map((job, index) => (
+              <JobCard job={job} key={job.id} index={index} />
             ))}
           </div>
         )}

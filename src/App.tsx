@@ -4,6 +4,7 @@ import HomePage from "./pages/HomePages";
 import JobsPage from "./pages/JobsPage";
 import AboutPage from "./pages/AboutPage";
 import SavedJobsPage from "./pages/SavedJobsPage";
+import JobDetailsPage from "./pages/JobDetailsPage";
 
 function App() {
   return (
@@ -11,6 +12,7 @@ function App() {
       <Navigation />
       <Routes>
         <Route path="/" element={<HomePage />} />
+        <Route path="/jobs/:id" element={<JobDetailsPage />} />
         <Route path="/jobs" element={<JobsPage />} />
         <Route path="/saved" element={<SavedJobsPage />} />
         <Route path="/about" element={<AboutPage />} />

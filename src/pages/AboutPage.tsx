@@ -1,9 +1,7 @@
-import React from "react";
-
 function AboutPage() {
   return (
-    <div className="min-h-screen bg-gray-100 p-8">
-      <div className="max-w-4xl mx-auto bg-white p-8 rounded-lg shadow">
+    <div className="min-h-screen bg-gray-100 py-8 px-4">
+      <div className="max-w-4xl mx-auto bg-white p-8 rounded-lg shadow-card">
         <h1 className="text-3xl font-bold mb-4">About This Project</h1>
         <p className="text-gray-600 mb-4">
           This Job Board Dashboard is built with:

@@ -16,7 +16,6 @@ export function useSaveJob() {
     onSuccess: () => {
       // Invalidate saved job query - tells react query to refetch
       queryClient.invalidateQueries({ queryKey: ["savedJobs"] });
-      console.log("Job saved successfully");
     },
     // If save fails
     onError: (error) => {
@@ -32,7 +31,6 @@ export function useSaveJob() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["savedJobs"] });
-      console.log("Job unsaved successfully!");
     },
     onError: (error) => {
       console.error("Failed to unsave job: ", error);
