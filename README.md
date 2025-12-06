@@ -13,17 +13,20 @@ The most interesting challenge was managing state across URL parameters, React Q
 ## Key Features
 
 **Job Browsing**
+
 - Browse thousands of real job listings
 - Filter by 13 different categories (Engineering, Design, etc.)
 - Pagination that actually works with browser back/forward buttons
 - Every job has detailed information and direct application links
 
 **Saving Jobs**
+
 - Save jobs you're interested in with one click
 - Your saved jobs persist in localStorage (they're still there after closing the browser)
 - Unsave from anywhere - the UI updates everywhere automatically thanks to React Query
 
 **The Little Things**
+
 - Cards fade in one by one instead of popping in all at once
 - Responsive design that actually works on mobile (tested down to iPhone SE)
 - Smart back button that remembers where you came from
@@ -37,7 +40,7 @@ I chose this stack because I wanted to learn industry-standard tools:
 - **React 18** with **TypeScript** - Type safety caught so many bugs before runtime
 - **React Query** - Game changer for server state. The automatic caching and background refetching is magic
 - **React Router v6** - URL state management was trickier than I expected, but now I understand why everyone uses URLs for state
-- **Tailwind CSS** - Controversial choice, but I got way faster at styling once I learned the utility classes
+- **Tailwind CSS** - For consistent design system and mobile-first responsive utilities
 - **Vite** - Dev server that actually starts instantly
 
 The API is from The Muse, which has real job data from actual companies.
